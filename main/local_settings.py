@@ -63,7 +63,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-AUTH_USER_MODEL = "solarapp.CustomUser" 
+# AUTH_USER_MODEL = "solarapp.CustomUser" 
 
 ROOT_URLCONF = "main.urls"
 

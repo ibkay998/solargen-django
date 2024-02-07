@@ -24,7 +24,7 @@ class InstallerProfileSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['username', 'email', 'first_name', 'last_name', ]
+        fields = []
 
 class InstallerSignInSerializer(serializers.Serializer):
     username = serializers.CharField()
