@@ -7,10 +7,10 @@ class CustomUser(AbstractUser):
         ('user', 'User'),
         ('installer', 'Installer'),
     ]
-    password = models.CharField(max_length=20)
+    
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
 
-    REQUIRED_FIELDS = ['email','password','user_type']
+    REQUIRED_FIELDS = ['email','password']
 
     
 class Installer(CustomUser):
