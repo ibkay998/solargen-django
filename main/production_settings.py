@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'solargen',
+    'solarapp',
     "rest_framework",
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
@@ -67,7 +67,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-AUTH_USER_MODEL = "solargen.CustomUser" 
+AUTH_USER_MODEL = "solarapp.CustomUser" 
 
 ROOT_URLCONF = "main.urls"
 
