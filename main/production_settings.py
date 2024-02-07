@@ -104,6 +104,10 @@ DATABASES = {
     }
 }
 
+SWAGGER_SETTINGS = {
+   'USE_SESSION_AUTH': False
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

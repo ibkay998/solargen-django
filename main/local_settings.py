@@ -85,6 +85,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "main.wsgi.application"
 
+SWAGGER_SETTINGS = {
+   'USE_SESSION_AUTH': False
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
