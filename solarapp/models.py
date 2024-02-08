@@ -2,15 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from enum import Enum
 
-class CustomUser(AbstractUser):
-    USER_TYPE_CHOICES = [
-        ('user', 'User'),
-        ('installer', 'Installer'),
-    ]
-    
-    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
+#its going to be something like this
 
-    REQUIRED_FIELDS = ['email','password']
+class CustomUser(AbstractUser):
+    pass
 
     
 class Installer(CustomUser):
@@ -24,8 +19,8 @@ class Installer(CustomUser):
     # solar_size_watts = models.IntegerField(null=True, blank=True)  # Total wattage capacity of solar installation
     # efficiency_ratings = models.IntegerField(null=True, blank=True)  # Efficiency ratings of solar panels
     # total_number_of_panels = models.IntegerField(null=True, blank=True)  # Total count of solar panels
-    class Meta:
-        proxy = True
+    pass
+    
 
 class UserProfile(CustomUser):
     # installer = models.ForeignKey(Installer, on_delete=models.CASCADE)
@@ -37,8 +32,7 @@ class UserProfile(CustomUser):
     # charge = models.FloatField()  # Total cost of energy consumed (load x tariff)
     # dynamic_charge = models.FloatField()  # Cost of energy calculated using the dynamic tariff
     # wasted_energy = models.FloatField()  # Differe
-    class Meta:
-        proxy = True
+    pass
 
 # # Creating an instance of installer_0
 # installer_0, created = Installer.objects.get_or_create(username='installer_0')
