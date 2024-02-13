@@ -114,38 +114,32 @@ def installer_signin(request):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
-def add_user(request, installer_id):
+@permission_classes([IsAuthenticated])
+def add_user(request):
     if request.method == 'POST':
-        try:
-            installer = Installer.objects.get(pk=installer_id)
-        except Installer.DoesNotExist:
-            return Response({'error': 'Installer not found'}, status=status.HTTP_404_NOT_FOUND)
+        installer = request.user.installer
 
-        username = request.POST['username']
-        email = request.POST['email']
-        if UserProfile.objects.filter(email=email).exists():
-            response = {
-                'Error':'E-mail Already Used'
-            }
-            return JsonResponse(response)
-        elif UserProfile.objects.filter(username=username).exists():
-            response = {
-                'Error':f'Username [{username}] Already Used'
-            }
-            return JsonResponse(response)
-        
         serializer = UserProfileSerializer(data=request.data)
         if serializer.is_valid():
-            # Check if the user already has an installer
-            if UserProfile.objects.filter(email=serializer.validated_data['email']).exists():
-                return Response({'error': 'User already assigned to an installer'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            serializer.save(installer=installer)
-            # serializer.save()
-            # installer.users.add(serializer.instance)  # Assuming you have a ManyToManyField named 'users' in your Installer model
+            # Check if the user already exists
+            email = serializer.validated_data.get('email')
+
+            if UserProfile.objects.filter(email=email).exists():
+                return Response({'error': 'Email already used'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Hash the default password
+            hashed_password = make_password('password123')
+            serializer.validated_data['password'] = hashed_password
+
+            # Set the installer
+            serializer.validated_data['installer_profile'] = installer
+
+            # Save the user profile
+            user_profile = serializer.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
