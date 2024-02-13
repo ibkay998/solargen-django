@@ -23,7 +23,7 @@ class UserProfile(CustomUser):
     tariff = models.FloatField(null=True, blank=True)  # Rate per kilowatt-hour charged for energy
     conventional_pricing = models.FloatField(null=True, blank=True)
     ai_dynamic_pricing = models.FloatField(null=True, blank=True)
-    installer_profile = models.ForeignKey(Installer, on_delete=models.CASCADE, related_name='user_profiles_installer')
+    installer_profile = models.ForeignKey(Installer, on_delete=models.CASCADE, related_name='user_profiles_installer') ## TODO
 
 class SolarSpecification(models.Model):
     user_profile = models.ForeignKey('UserProfile', on_delete=models.CASCADE, related_name='solar_specifications')

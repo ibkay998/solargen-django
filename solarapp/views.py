@@ -3,8 +3,8 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User,auth
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from .serializers import InstallerProfileSerializer, UserProfileSerializer, UserProfileSignInSerializer
-from .models import Installer, UserProfile
+from .serializers import InstallerProfileSerializer, UserProfileSerializer, UserProfileSignInSerializer, InstallerSignUpSerializer, InstallerAddUserSerializer
+from .models import Installer, UserProfile, CustomUser
 from rest_framework import viewsets
 from rest_framework.response import Response
 
@@ -24,6 +24,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
+
 class UserProfileViewSet(viewsets.ModelViewSet):
     """
     UserModel View.
@@ -33,78 +37,29 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
     queryset = UserProfile.objects.all()
 
-# class MyObtainTokenPairView(TokenObtainPairView):
-#     permission_classes = (AllowAny,)
-#     serializer_class = MyTokenObtainPairSerializer
-
-
-# @api_view(['POST'])
-# def signup(request):
-#     username = request.data.get('username')
-#     password = request.data.get('password')
-
-#     if not username or not password:
-#         return Response({'error': 'Username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
-
-#     user = User.objects.create_user(username=username, password=password)
-#     user.save()
-
-#     return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
-
-# @api_view(['POST'])
-# def login(request):
-#     username = request.data.get('username')
-#     password = request.data.get('password')
-
-#     user = authenticate(username=username, password=password)
-#     if user:
-#         refresh = RefreshToken.for_user(user)
-#         return Response({
-#             'refresh': str(refresh),
-#             'access': str(refresh.access_token),
-#         }, status=status.HTTP_200_OK)
-#     else:
-#         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
-    
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def user_list(request):
-#     users = User.objects.all()
-#     user_data = [{'id': user.id, 'username': user.username} for user in users]
-#     return Response(user_data)
-
+@swagger_auto_schema(method='post', request_body=InstallerSignUpSerializer)
 @api_view(['POST'])
 def installer_signup(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+        serializer_signup = InstallerSignUpSerializer(data = request.data)
+        if serializer_signup.is_valid():
+            # Hash the password before saving
+            hashed_password = make_password(serializer_signup.validated_data.get('password'))
+            serializer_profile = InstallerProfileSerializer(data=request.data)
+            if serializer_profile.is_valid():
+                # Set the hashed password in the serializer data
+                serializer_profile.validated_data['password'] = hashed_password
+                serializer_profile.save()
+                return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
+        return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if Installer.objects.filter(email=email).exists():
-            response = {'error': 'E-mail already in use'}
-            return JsonResponse(response, status=status.HTTP_400_BAD_REQUEST)
-        elif Installer.objects.filter(username=username).exists():
-            response = {'error': f'Username "{username}" already in use'}
-            return JsonResponse(response, status=status.HTTP_400_BAD_REQUEST)
-
-        # Hash the password before saving
-        hashed_password = make_password(password)
-
-        serializer = InstallerProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            # Set the hashed password in the serializer data
-            serializer.validated_data['password'] = hashed_password
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+@swagger_auto_schema(method='post', request_body=InstallerSignInSerializer)
 @api_view(['POST'])
 def installer_signin(request):
     if request.method == 'POST':
-        serializer = InstallerSignInSerializer(data=request.data)
-        if serializer.is_valid():
-            installer = serializer.validated_data['installer']
-
+        serializer_signin = InstallerSignInSerializer(data=request.data)
+        if serializer_signin.is_valid():
+            installer = serializer_signin.validated_data['installer']
             # Authentication successful, generate JWT token
             refresh = RefreshToken.for_user(installer)
             return Response({
@@ -112,35 +67,36 @@ def installer_signin(request):
                 'access': str(refresh.access_token),
             }, status=status.HTTP_200_OK)
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer_signin.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(method='post', request_body=UserProfileSerializer, 
+                     manual_parameters=[
+    openapi.Parameter('Authorization', openapi.IN_HEADER, description="Description of custom header", type=openapi.TYPE_STRING)]
+    )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def add_user(request):
     if request.method == 'POST':
-        installer = request.user.installer
+        serializer_addUser = InstallerAddUserSerializer(data=request.data)
+        if serializer_addUser.is_valid():
+            serializer_profile = UserProfileSerializer(data=request.data)
+            if serializer_profile.is_valid():
+                installer = request.user.installer
+                custom_header_value = request.headers.get('Authorization')
 
-        serializer = UserProfileSerializer(data=request.data)
-        if serializer.is_valid():
-            # Check if the user already exists
-            email = serializer.validated_data.get('email')
+                # Hash the default password
+                hashed_password = make_password('password123')
+                serializer_profile.validated_data['password'] = hashed_password
 
-            if UserProfile.objects.filter(email=email).exists():
-                return Response({'error': 'Email already used'}, status=status.HTTP_400_BAD_REQUEST)
+                # Set the installer
+                serializer_profile.validated_data['installer_profile'] = installer
 
-            # Hash the default password
-            hashed_password = make_password('password123')
-            serializer.validated_data['password'] = hashed_password
+                # Save the user profile
+                user_profile = serializer_profile.save()
 
-            # Set the installer
-            serializer.validated_data['installer_profile'] = installer
+                return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
 
-            # Save the user profile
-            user_profile = serializer.save()
-
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def user_signin(request):
@@ -158,26 +114,11 @@ def user_signin(request):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-def get_user_initial_password(request, installer_id, user_id):
-    if request.method == 'GET':
-        try:
-            installer = Installer.objects.get(pk=installer_id)
-            user = UserProfile.objects.get(pk=user_id, installer=installer)
-        except Installer.DoesNotExist:
-            return Response({'error': 'Installer not found'}, status=status.HTTP_404_NOT_FOUND)
-        except UserProfile.DoesNotExist:
-            return Response({'error': 'User not found or not associated with the installer'}, status=status.HTTP_404_NOT_FOUND)
-        
-        return Response({'initial_password': user.password}, status=status.HTTP_200_OK)
-
-
-# 
-
-@api_view(['PUT'])
+@swagger_auto_schema(method='post', request_body=InstallerSignUpSerializer)
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_change_password(request):
-    if request.method == 'PUT':
+    if request.method == 'POST':
         user = request.user
         print(request.auth,request.data,request.user,sep='\n')
         # if not user.is_authenticated:
@@ -201,6 +142,3 @@ def user_change_password(request):
         user_profile.save()
 
         return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
-
-    
-    

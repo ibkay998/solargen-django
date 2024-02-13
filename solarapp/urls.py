@@ -9,7 +9,7 @@ urlpatterns = [
     path('installers/signup/', views.installer_signup, name='installer_signup'),
     path('installers/signin/', views.installer_signin, name='installer_signin'),
     path('installers/add_user/', views.add_user, name='add_user'),
-    path('installers/<int:installer_id>/users/<int:user_id>/user_initial_password/', views.get_user_initial_password, name='get_initial_password'),
+    # path('installers/<int:installer_id>/users/<int:user_id>/user_initial_password/', views.get_user_initial_password, name='get_initial_password'),
     path('users/signin/', views.user_signin, name='user_signin'),
     path('users/change_password/', views.user_change_password, name='user_change_password'),
 
@@ -17,5 +17,5 @@ urlpatterns = [
 
 
 router = DefaultRouter()
-router.register(r"user", views.UserProfileViewSet, basename="user")
+# router.register(r"user", views.UserProfileViewSet, basename="user")
 urlpatterns += router.urls
