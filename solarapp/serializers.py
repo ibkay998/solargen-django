@@ -4,7 +4,9 @@ from .models import Installer,UserProfile
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password,make_password
 from django.contrib.auth import get_user_model
-from .models import Installer, UserProfile
+from .models import Installer, UserProfile, CustomUser
+from rest_framework.validators import UniqueValidator
+from rest_framework import status
 
 # class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
@@ -16,19 +18,39 @@ from .models import Installer, UserProfile
 #         token['username'] = user.username
 #         return token
 
+class InstallerSignUpSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True,
+                                    #  validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+                                     )
+    password = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True,
+                                #    validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+                                   )
+
+    def validate(self, data):
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+
+        if username and password and email:
+            if CustomUser.objects.filter(email=email).exists():
+                raise serializers.ValidationError('E-mail already in use')
+            elif CustomUser.objects.filter(username=username).exists():
+                raise serializers.ValidationError(f'Username "{username}" already in use')
+
+            return data
+        else:
+            raise serializers.ValidationError('Username, Email, and Password are all required')
+
+
 class InstallerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Installer
-        fields = ['username', 'email', 'password', 'first_name', 'last_name']
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = []
+        fields = ['username', 'email', 'first_name', 'last_name']
 
 class InstallerSignInSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField(write_only=True)
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
 
     def validate(self, data):
         username = data.get('username')
@@ -54,19 +76,51 @@ class InstallerSignInSerializer(serializers.Serializer):
         
 
 
+class InstallerAddUserSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True,
+                                    #  validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+                                     )
+    email = serializers.EmailField(required=True,
+                                #    validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+                                   )
+    first_name = serializers.CharField(required=True,
+                                    #  validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+                                     )
+    last_name = serializers.CharField(required=True,
+                                    #  validators=[UniqueValidator(queryset=CustomUser.objects.all())]
+                                     )
+
+    def validate(self, data):
+        username = data.get('username')
+        email = data.get('email')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+
+
+        if username and email and first_name and last_name:
+            if CustomUser.objects.filter(email=email).exists():
+                raise serializers.ValidationError('E-mail already in use')
+            elif CustomUser.objects.filter(username=username).exists():
+                raise serializers.ValidationError(f'Username "{username}" already in use')
+            return data
+        else:
+            raise serializers.ValidationError('Username, Email, and Password are all required')
+
+
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['email', 'first_name', 'last_name']  # Include fields for serializer
+        fields = ['email', 'first_name', 'last_name','username']  # Include fields for serializer
     
     def create(self, validated_data):
         return UserProfile.objects.create(**validated_data)
 
 
 class UserProfileSignInSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField(write_only=True)
-
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
@@ -88,3 +142,4 @@ class UserProfileSignInSerializer(serializers.Serializer):
             return data
         else:
             raise serializers.ValidationError('Username and password are required')
+
