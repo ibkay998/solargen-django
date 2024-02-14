@@ -13,8 +13,6 @@ class Installer(CustomUser):
     installer_id = models.AutoField(primary_key=True)
     latitude = models.FloatField(null=True, blank=True)  # Geographical coordinates
     longitude = models.FloatField(null=True, blank=True)
-    address_provided = models.CharField(null=True, blank=True)
-    address_found = models.CharField(null=True, blank=True)
     tariff = models.FloatField(null=True, blank=True)  # Rate per kilowatt-hour charged for energy
     
 
@@ -22,8 +20,6 @@ class UserProfile(CustomUser):
     user_profile_id = models.AutoField(primary_key=True)
     latitude = models.FloatField(null=True, blank=True)  # Geographical coordinates
     longitude = models.FloatField(null=True, blank=True)
-    address_provided = models.CharField(null=True, blank=True)
-    address_found = models.CharField(null=True, blank=True)
     tariff = models.FloatField(null=True, blank=True)  # Rate per kilowatt-hour charged for energy
     conventional_pricing = models.FloatField(null=True, blank=True)
     ai_dynamic_pricing = models.FloatField(null=True, blank=True)
