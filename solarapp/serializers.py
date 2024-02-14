@@ -7,37 +7,70 @@ from django.contrib.auth import get_user_model
 from .models import Installer, UserProfile, CustomUser
 from rest_framework.validators import UniqueValidator
 from rest_framework import status
+from geopy.geocoders import Nominatim
+loc = Nominatim(user_agent="Geopy Library")
 
-# class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
-#     @classmethod
-#     def get_token(cls, user):
-#         token = super(MyTokenObtainPairSerializer, cls).get_token(user)
-
-#         # Add custom claims
-#         token['username'] = user.username
-#         return token
+def get_long_lat(country,state,city,street,houseNumber):
+    if not state.lower().strip().endswith('State'):
+        state += " state"
+    addresses = [
+        f"{houseNumber}, {street}, {city}, {state}, {country}",
+        f"{street}, {city}, {state}, {country}",
+        f"{city}, {state}, {country}",
+        f"{state}, {country}",
+    ]
+    for address in addresses:
+        getLoc = loc.geocode(address)
+        # print(address,getLoc)
+        if getLoc:
+            return (getLoc.latitude, getLoc.longitude, getLoc.address)
+    return (None, None, None)
 
 class InstallerSignUpSerializer(serializers.Serializer):
-    username = serializers.CharField(required=True,
-                                    #  validators=[UniqueValidator(queryset=CustomUser.objects.all())]
-                                     )
+    username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True,
-                                #    validators=[UniqueValidator(queryset=CustomUser.objects.all())]
-                                   )
+    email = serializers.EmailField(required=True)
+
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+    other_names = serializers.CharField(required=False)
+
+    location_houseNumber = serializers.IntegerField(required=True)
+    location_street = serializers.CharField(required=True)
+    location_city = serializers.CharField(required=True)
+    location_state = serializers.CharField(required=True)
+    location_country = serializers.CharField(required=True)
+
+    company_name = serializers.CharField(required=True)
+    contact_number = serializers.CharField(required=True)
 
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
         email = data.get('email')
 
+        country = data.get('location_country')
+        state = data.get('location_state')
+        city = data.get('location_city')
+        street = data.get('location_street')
+        houseNumber = data.get('location_houseNumber')
+        address_provided = f"{houseNumber}, {street}, {city}, {state}, {country}"
+
+        latitude,longitude,address_found = get_long_lat(country,state,city,street,houseNumber)
+        data['latitude'] = latitude
+        data['longitude'] = longitude
+        data['address_found'] = address_found
+        data['address_provided'] = address_provided
+
+        if (latitude is None) or (longitude is None):
+            raise serializers.ValidationError('Cannot find the provided address!')
+
         if username and password and email:
             if CustomUser.objects.filter(email=email).exists():
                 raise serializers.ValidationError('E-mail already in use')
             elif CustomUser.objects.filter(username=username).exists():
                 raise serializers.ValidationError(f'Username "{username}" already in use')
-
             return data
         else:
             raise serializers.ValidationError('Username, Email, and Password are all required')
@@ -46,7 +79,7 @@ class InstallerSignUpSerializer(serializers.Serializer):
 class InstallerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Installer
-        fields = ['username', 'email', 'first_name', 'last_name']
+        fields = ['username', 'email', 'first_name', 'last_name','latitude','longitude']
 
 class InstallerSignInSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)

@@ -47,11 +47,16 @@ def installer_signup(request):
             hashed_password = make_password(serializer_signup.validated_data.get('password'))
             serializer_profile = InstallerProfileSerializer(data=request.data)
             if serializer_profile.is_valid():
+                serializer_profile.validated_data['latitude'] = serializer_signup.validated_data['latitude']
+                serializer_profile.validated_data['longitude'] = serializer_signup.validated_data['longitude']
+                serializer_profile.validated_data['address_found'] = serializer_signup.validated_data['address_found']
+                serializer_profile.validated_data['address_provided'] = serializer_signup.validated_data['address_provided']
+
                 # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
-        return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer_signup.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(method='post', request_body=InstallerSignInSerializer)
 @api_view(['POST'])
