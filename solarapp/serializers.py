@@ -58,13 +58,11 @@ class InstallerSignInSerializer(serializers.Serializer):
 
         if username and password:
             # Retrieve the user object using the provided username
-            
             try:
                 installer = Installer.objects.get(username=username)
             except Installer.DoesNotExist:
                 raise serializers.ValidationError('Invalid credentials')
 
-        
             if not check_password(password, installer.password):
                 raise serializers.ValidationError('Invalid credentials')
             
@@ -106,7 +104,23 @@ class InstallerAddUserSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError('Username, Email, and Password are all required')
 
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
 
+    def validate(self, data):
+        old_password = data.get('old_password')
+        new_password = data.get('new_password')
+
+        if old_password and new_password:
+            return data
+        else:
+            return serializers.ValidationError('Error!')
+        
+
+"""
+USERS
+"""
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -118,22 +132,20 @@ class UserProfileSerializer(serializers.ModelSerializer):
         return UserProfile.objects.create(**validated_data)
 
 
+
 class UserProfileSignInSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
+
     def validate(self, data):
         username = data.get('username')
         password = data.get('password')
-
         if username and password:
             # Retrieve the user object using the provided username
-            
             try:
                 user = UserProfile.objects.get(username=username)
             except UserProfile.DoesNotExist:
                 raise serializers.ValidationError('Invalid credentials')
-
-        
             if not check_password(password, user.password):
                 raise serializers.ValidationError('Invalid credentials')
             
@@ -143,3 +155,16 @@ class UserProfileSignInSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError('Username and password are required')
 
+# class UserProfileChangePasswordSerializer(serializers.Serializer):
+#     old_password = serializers.CharField(required=True)
+#     new_password = serializers.CharField(required=True)
+
+#     def validate(self, data):
+#         old_password = data.get('old_password')
+#         new_password = data.get('new_password')
+
+#         if old_password and new_password:
+#             return data
+#         else:
+#             return serializers.ValidationError('Error!')
+        
