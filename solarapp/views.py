@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User,auth
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from .serializers import InstallerProfileSerializer, UserProfileSerializer, UserProfileSignInSerializer, InstallerSignUpSerializer, InstallerAddUserSerializer
+from .serializers import InstallerProfileSerializer, UserProfileSerializer, UserProfileSignInSerializer, InstallerSignUpSerializer, InstallerAddUserSerializer, ChangePasswordSerializer
 from .models import Installer, UserProfile, CustomUser
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -47,11 +47,16 @@ def installer_signup(request):
             hashed_password = make_password(serializer_signup.validated_data.get('password'))
             serializer_profile = InstallerProfileSerializer(data=request.data)
             if serializer_profile.is_valid():
+                serializer_profile.validated_data['latitude'] = serializer_signup.validated_data['latitude']
+                serializer_profile.validated_data['longitude'] = serializer_signup.validated_data['longitude']
+                serializer_profile.validated_data['address_found'] = serializer_signup.validated_data['address_found']
+                serializer_profile.validated_data['address_provided'] = serializer_signup.validated_data['address_provided']
+
                 # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
-        return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer_signup.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(method='post', request_body=InstallerSignInSerializer)
 @api_view(['POST'])
@@ -80,7 +85,7 @@ def add_user(request):
         serializer_addUser = InstallerAddUserSerializer(data=request.data)
         if serializer_addUser.is_valid():
             serializer_profile = UserProfileSerializer(data=request.data)
-            if serializer_profile.is_valid():
+            if serializer_profile.is_valid():# and serializer_profile2.is_valid():
                 installer = request.user.installer
                 custom_header_value = request.headers.get('Authorization')
 
@@ -90,14 +95,55 @@ def add_user(request):
 
                 # Set the installer
                 serializer_profile.validated_data['installer_profile'] = installer
-
+                
+                installer.installed_assets += 1
+                installer.save()
+                
                 # Save the user profile
-                user_profile = serializer_profile.save()
+                serializer_profile.save()
 
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer_addUser.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@swagger_auto_schema(method='post', request_body=ChangePasswordSerializer,
+                     manual_parameters=[
+    openapi.Parameter('Authorization', openapi.IN_HEADER, description="Description of custom header", type=openapi.TYPE_STRING)]
+    )
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def installer_change_password(request):
+    if request.method == 'POST':
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            # Fetch UserProfile instance
+            try:
+                user_profile = Installer.objects.get(username=user.username)
+            except Installer.DoesNotExist:
+                return Response({'error': 'Installer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+            # print(serializer.validated_data['new_password'], user_profile.password)
+            # Check if the old password matches the current password of the user
+            if not check_password(serializer.validated_data['old_password'], user_profile.password):
+                return Response({'error': 'Invalid old password'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Update the user's password
+            user_profile.set_password(serializer.validated_data['new_password'])
+            user_profile.save()
+
+            return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+"""
+USERS
+"""
+
+
+@swagger_auto_schema(method='post', request_body=UserProfileSignInSerializer)
 @api_view(['POST'])
 def user_signin(request):
     if request.method == 'POST':
@@ -114,31 +160,32 @@ def user_signin(request):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@swagger_auto_schema(method='post', request_body=InstallerSignUpSerializer)
+@swagger_auto_schema(method='post', request_body=ChangePasswordSerializer,
+                     manual_parameters=[
+    openapi.Parameter('Authorization', openapi.IN_HEADER, description="Description of custom header", type=openapi.TYPE_STRING)]
+    )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_change_password(request):
     if request.method == 'POST':
-        user = request.user
-        print(request.auth,request.data,request.user,sep='\n')
-        # if not user.is_authenticated:
-        #     return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user = request.user
+            # Fetch UserProfile instance
+            try:
+                user_profile = UserProfile.objects.get(username=user.username)
+            except UserProfile.DoesNotExist:
+                return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
+            # print(serializer.validated_data['new_password'], user_profile.password)
+            # Check if the old password matches the current password of the user
+            if not check_password(serializer.validated_data['old_password'], user_profile.password):
+                return Response({'error': 'Invalid old password'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch UserProfile instance
-        try:
-            user_profile = UserProfile.objects.get(username=user.username)
-        except UserProfile.DoesNotExist:
-            return Response({'error': 'User profile not found'}, status=status.HTTP_404_NOT_FOUND)
+            # Update the user's password
+            user_profile.set_password(serializer.validated_data['new_password'])
+            user_profile.save()
 
-        # Check if the old password matches the current password of the user
-        if not check_password(old_password, user_profile.password):
-            return Response({'error': 'Invalid old password'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Update the user's password
-        user_profile.set_password(new_password)
-        user_profile.save()
-
-        return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
