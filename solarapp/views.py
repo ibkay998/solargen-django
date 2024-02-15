@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User,auth
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from .serializers import InstallerProfileSerializer, UserProfileSerializer, UserProfileSignInSerializer, InstallerSignUpSerializer, InstallerAddUserSerializer, ChangePasswordSerializer
+from .serializers import InstallerProfileSerializer, InstallerProfileViewSerializer, UserProfileSerializer, UserProfileSignInSerializer, InstallerSignUpSerializer, InstallerAddUserSerializer, ChangePasswordSerializer
 from .models import Installer, UserProfile, CustomUser
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -51,11 +51,17 @@ def installer_signup(request):
                 serializer_profile.validated_data['longitude'] = serializer_signup.validated_data['longitude']
                 serializer_profile.validated_data['address_found'] = serializer_signup.validated_data['address_found']
                 serializer_profile.validated_data['address_provided'] = serializer_signup.validated_data['address_provided']
+                serializer_profile.validated_data['company_name'] = serializer_signup.validated_data['company_name']
+                serializer_profile.validated_data['contact_number'] = serializer_signup.validated_data['contact_number']
+                serializer_profile.validated_data['full_name'] = serializer_signup.validated_data['full_name']
+                serializer_profile.validated_data['other_names'] = serializer_signup.validated_data['other_names']
+                
 
                 # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
+            return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer_signup.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(method='post', request_body=InstallerSignInSerializer)
@@ -136,6 +142,31 @@ def installer_change_password(request):
             return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@swagger_auto_schema(method='get', manual_parameters=[
+    openapi.Parameter('Authorization', openapi.IN_HEADER, description="Description of custom header", type=openapi.TYPE_STRING)]
+    )
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def installer_view_profile(request):
+    if request.method == 'GET':
+        serializer = InstallerProfileViewSerializer(data=request.data)
+        if serializer.is_valid():    
+            installer_username = request.user.username
+            installer = Installer.objects.get(username=installer_username)
+
+            profile = {
+                "Name": installer.full_name,
+                "Location": installer.address_found,
+                "Company": installer.company_name,
+                "Number of Assets": installer.installed_assets,
+                "Email Address": installer.email,
+                "Contact Number": installer.contact_number,
+            }
+            return Response(profile, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 """
