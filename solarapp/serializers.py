@@ -57,11 +57,18 @@ class InstallerSignUpSerializer(serializers.Serializer):
         houseNumber = data.get('location_houseNumber')
         address_provided = f"{houseNumber}, {street}, {city}, {state}, {country}"
 
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
+        other_names = data.get('other_names')
+        full_name = f"{first_name} {other_names} {last_name}"
+
         latitude,longitude,address_found = get_long_lat(country,state,city,street,houseNumber)
         data['latitude'] = latitude
         data['longitude'] = longitude
         data['address_found'] = address_found
         data['address_provided'] = address_provided
+        
+        data['full_name'] = full_name
 
         if (latitude is None) or (longitude is None):
             raise serializers.ValidationError('Cannot find the provided address!')
@@ -80,6 +87,15 @@ class InstallerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Installer
         fields = ['username', 'email', 'first_name', 'last_name','latitude','longitude']
+        # fields = ['username','full_name','address_found','company_name','installed_assets','email','contact_number']
+
+class InstallerProfileViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Installer
+        # fields = ['username', 'email', 'first_name', 'last_name','latitude','longitude']
+        # fields = ['username','full_name','address_found','company_name','installed_assets','email','contact_number']
+        fields = []
+
 
 class InstallerSignInSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
