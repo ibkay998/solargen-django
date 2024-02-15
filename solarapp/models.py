@@ -5,25 +5,31 @@ from enum import Enum
 #its going to be something like this
 
 class CustomUser(AbstractUser):
-    pass
+    other_names = models.CharField(null=True, blank=True)
+    full_name = models.CharField(null=True, blank=True)
+
+    latitude = models.FloatField(null=True, blank=True)  # Geographical coordinates
+    longitude = models.FloatField(null=True, blank=True)
+    address_provided = models.CharField(null=True, blank=True)
+    address_found = models.CharField(null=True, blank=True)
+    
 
     
 class Installer(CustomUser):
     installed_assets = models.IntegerField(default=0)
     installer_id = models.AutoField(primary_key=True)
-    latitude = models.FloatField(null=True, blank=True)  # Geographical coordinates
-    longitude = models.FloatField(null=True, blank=True)
-    address_provided = models.CharField(null=True, blank=True)
-    address_found = models.CharField(null=True, blank=True)
+    
     tariff = models.FloatField(null=True, blank=True)  # Rate per kilowatt-hour charged for energy
+    company_name = models.CharField(null=True, blank=True)
+    contact_number = models.CharField(null=True, blank=True)
     
 
 class UserProfile(CustomUser):
     user_profile_id = models.AutoField(primary_key=True)
-    latitude = models.FloatField(null=True, blank=True)  # Geographical coordinates
-    longitude = models.FloatField(null=True, blank=True)
-    address_provided = models.CharField(null=True, blank=True)
-    address_found = models.CharField(null=True, blank=True)
+    # latitude = models.FloatField(null=True, blank=True)  # Geographical coordinates
+    # longitude = models.FloatField(null=True, blank=True)
+    # address_provided = models.CharField(null=True, blank=True)
+    # address_found = models.CharField(null=True, blank=True)
     tariff = models.FloatField(null=True, blank=True)  # Rate per kilowatt-hour charged for energy
     conventional_pricing = models.FloatField(null=True, blank=True)
     ai_dynamic_pricing = models.FloatField(null=True, blank=True)
