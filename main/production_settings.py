@@ -26,6 +26,7 @@ ALLOWED_HOSTS = ["*"]
 # Edit the following line and place your railway URL, and your custom URL in the array.
 CSRF_TRUSTED_ORIGINS = [
     "https://*.up.railway.app", 
+    "http://*.up.railway.app", 
     # NOTE: Place your custom url here if any
 ]
 
@@ -107,6 +108,8 @@ DATABASES = {
 SWAGGER_SETTINGS = {
    'USE_SESSION_AUTH': False
 }
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Password validation
