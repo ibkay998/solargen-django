@@ -53,18 +53,11 @@ def installer_signup(request):
                 serializer_profile.validated_data['address_found'] = serializer_signup.validated_data['address_found']
                 serializer_profile.validated_data['address_provided'] = serializer_signup.validated_data['address_provided']
                 serializer_profile.validated_data['company_name'] = serializer_signup.validated_data['company_name']
-                print("1")
                 serializer_profile.validated_data['contact_number'] = serializer_signup.validated_data['contact_number']
-                print("2")
                 serializer_profile.validated_data['full_name'] = serializer_signup.validated_data['full_name']
-                print("3")
                 serializer_profile.validated_data['other_names'] = serializer_signup.validated_data['other_names']
-                
-                print("4")
                 # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
-
-                print("5")
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
             return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)

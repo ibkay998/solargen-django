@@ -96,7 +96,7 @@ class InstallerSignUpSerializer(serializers.Serializer):
 class InstallerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Installer
-        fields = ['username', 'email', 'first_name', 'last_name','latitude','longitude']
+        fields = ['username', 'email', 'first_name','other_names','last_name','latitude','longitude']
         # fields = ['username','full_name','address_found','company_name','installed_assets','email','contact_number']
 
 class InstallerProfileViewSerializer(serializers.ModelSerializer):
