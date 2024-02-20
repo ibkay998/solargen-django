@@ -47,27 +47,24 @@ def installer_signup(request):
             
             hashed_password = make_password(serializer_signup.validated_data.get('password'))
             serializer_profile = InstallerProfileSerializer(data=request.data)
-            print("I entered here new")
             if serializer_profile.is_valid():
-                print("I entered here new 1")
                 serializer_profile.validated_data['latitude'] = serializer_signup.validated_data['latitude']
-                print("I entered here new 2")
                 serializer_profile.validated_data['longitude'] = serializer_signup.validated_data['longitude']
-                print("I entered here new 3")
                 serializer_profile.validated_data['address_found'] = serializer_signup.validated_data['address_found']
-                print("I entered here new 4")
                 serializer_profile.validated_data['address_provided'] = serializer_signup.validated_data['address_provided']
-                print("I entered here new 5")
                 serializer_profile.validated_data['company_name'] = serializer_signup.validated_data['company_name']
+                print("1")
                 serializer_profile.validated_data['contact_number'] = serializer_signup.validated_data['contact_number']
+                print("2")
                 serializer_profile.validated_data['full_name'] = serializer_signup.validated_data['full_name']
+                print("3")
                 serializer_profile.validated_data['other_names'] = serializer_signup.validated_data['other_names']
                 
-
+                print("4")
                 # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
 
-                print("I entered here x2")
+                print("5")
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
             return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
