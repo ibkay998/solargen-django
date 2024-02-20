@@ -8,6 +8,7 @@ from .models import Installer, UserProfile, CustomUser
 from rest_framework.validators import UniqueValidator
 from rest_framework import status
 from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
 loc = Nominatim(user_agent="Geopy Library")
 
 
@@ -62,7 +63,11 @@ class InstallerSignUpSerializer(serializers.Serializer):
         other_names = data.get('other_names')
         full_name = f"{first_name} {other_names} {last_name}"
 
-        latitude,longitude,address_found = get_long_lat(country,state,city,street,houseNumber)
+        try:
+            latitude, longitude, address_found = get_long_lat(country, state, city, street, houseNumber)
+        except GeocoderTimedOut:
+            raise serializers.ValidationError('Geocoding service timed out. Please ensure that your location is valid')
+        
         data['latitude'] = latitude
         data['longitude'] = longitude
         data['address_found'] = address_found
