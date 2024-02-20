@@ -65,18 +65,21 @@ class InstallerSignUpSerializer(serializers.Serializer):
 
         try:
             latitude, longitude, address_found = get_long_lat(country, state, city, street, houseNumber)
+            data['latitude'] = latitude
+            data['longitude'] = longitude
+            data['address_found'] = address_found
         except GeocoderTimedOut:
-            raise serializers.ValidationError('Geocoding service timed out. Please ensure that your location is valid')
+            data['latitude'] = 0
+            data['longitude'] = 0
+            data['address_found'] = ''
         
-        data['latitude'] = latitude
-        data['longitude'] = longitude
-        data['address_found'] = address_found
+        
         data['address_provided'] = address_provided
         
         data['full_name'] = full_name
 
-        if (latitude is None) or (longitude is None):
-            raise serializers.ValidationError('Cannot find the provided address!')
+        # if (latitude is None) or (longitude is None):
+        #     raise serializers.ValidationError('Cannot find the provided address!')
 
         if username and password and email:
             if CustomUser.objects.filter(email=email).exists():
