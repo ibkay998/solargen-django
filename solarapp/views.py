@@ -46,18 +46,32 @@ def installer_signup(request):
             # Hash the password before saving
             
             hashed_password = make_password(serializer_signup.validated_data.get('password'))
+            latitude = serializer_signup.validated_data.get('latitude')
+            longitude = serializer_signup.validated_data.get('longitude')
+            address_found = serializer_signup.validated_data.get('address_found')
+            address_provided = serializer_signup.validated_data.get('address_provided')
+            company_name = serializer_signup.validated_data.get('company_name')
+            contact_number = serializer_signup.validated_data.get('contact_number')
+            full_name = serializer_signup.validated_data.get('full_name')
+            other_names = serializer_signup.validated_data.get('other_names')
+
+            
             serializer_profile = InstallerProfileSerializer(data=request.data)
+            # Set the hashed password in the serializer_profile data
+            
             if serializer_profile.is_valid():
-                serializer_profile.validated_data['latitude'] = serializer_signup.validated_data['latitude']
-                serializer_profile.validated_data['longitude'] = serializer_signup.validated_data['longitude']
-                serializer_profile.validated_data['address_found'] = serializer_signup.validated_data['address_found']
-                serializer_profile.validated_data['address_provided'] = serializer_signup.validated_data['address_provided']
-                serializer_profile.validated_data['company_name'] = serializer_signup.validated_data['company_name']
-                serializer_profile.validated_data['contact_number'] = serializer_signup.validated_data['contact_number']
-                serializer_profile.validated_data['full_name'] = serializer_signup.validated_data['full_name']
-                serializer_profile.validated_data['other_names'] = serializer_signup.validated_data['other_names']
-                # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
+                serializer_profile.validated_data.update({
+                'latitude': latitude,
+                'longitude': longitude,
+                'address_found': address_found,
+                'address_provided': address_provided,
+                'company_name': company_name,
+                'contact_number': contact_number,
+                'full_name': full_name,
+                'other_names': other_names,
+            })
+
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
             return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)

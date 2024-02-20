@@ -79,15 +79,10 @@ class InstallerSignUpSerializer(serializers.Serializer):
             raise serializers.ValidationError('Cannot find the provided address!')
 
         if username and password and email:
-            try:
-                if CustomUser.objects.filter(email=email).exists():
-                    
-                    raise serializers.ValidationError('E-mail already in use')
-                elif CustomUser.objects.filter(username=username).exists():
-                   
-                    raise serializers.ValidationError(f'Username "{username}" already in use')
-            except Exception as e:
-                raise serializers.ValidationError(f'Something went wrong')
+            if CustomUser.objects.filter(email=email).exists():
+                raise serializers.ValidationError('E-mail already in use')
+            elif CustomUser.objects.filter(username=username).exists():
+                raise serializers.ValidationError(f'Username "{username}" already in use')
             return data
         else:
             raise serializers.ValidationError('Username, Email, and Password are all required')
@@ -96,7 +91,7 @@ class InstallerSignUpSerializer(serializers.Serializer):
 class InstallerProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Installer
-        fields = ['username', 'email', 'first_name','other_names','last_name','latitude','longitude']
+        fields = ['username', 'email', 'first_name','last_name','latitude','longitude']
         # fields = ['username','full_name','address_found','company_name','installed_assets','email','contact_number']
 
 class InstallerProfileViewSerializer(serializers.ModelSerializer):
