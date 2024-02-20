@@ -79,9 +79,12 @@ class InstallerSignUpSerializer(serializers.Serializer):
             raise serializers.ValidationError('Cannot find the provided address!')
 
         if username and password and email:
+            print("I entered here x3")
             if CustomUser.objects.filter(email=email).exists():
+                print("I entered here x4")
                 raise serializers.ValidationError('E-mail already in use')
             elif CustomUser.objects.filter(username=username).exists():
+                print("I entered here x5")
                 raise serializers.ValidationError(f'Username "{username}" already in use')
             return data
         else:

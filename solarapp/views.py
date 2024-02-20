@@ -60,6 +60,7 @@ def installer_signup(request):
 
                 # Set the hashed password in the serializer data
                 serializer_profile.validated_data['password'] = hashed_password
+                print("I entered here x2")
                 serializer_profile.save()
                 return Response(serializer_profile.data, status=status.HTTP_201_CREATED)
             return Response(serializer_profile.errors, status=status.HTTP_400_BAD_REQUEST)
