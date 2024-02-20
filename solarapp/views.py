@@ -42,10 +42,11 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 def installer_signup(request):
     if request.method == 'POST':
         serializer_signup = InstallerSignUpSerializer(data = request.data)
-        print("I entered here")
         if serializer_signup.is_valid():
             # Hash the password before saving
+            print("I entered here 1")
             hashed_password = make_password(serializer_signup.validated_data.get('password'))
+            print("I entered here 2")
             serializer_profile = InstallerProfileSerializer(data=request.data)
             if serializer_profile.is_valid():
                 serializer_profile.validated_data['latitude'] = serializer_signup.validated_data['latitude']

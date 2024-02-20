@@ -90,6 +90,7 @@ class InstallerSignUpSerializer(serializers.Serializer):
                     raise serializers.ValidationError(f'Username "{username}" already in use')
             except Exception as e:
                 raise serializers.ValidationError(f'Something went wrong')
+            print("I returned data")
             return data
         else:
             raise serializers.ValidationError('Username, Email, and Password are all required')
