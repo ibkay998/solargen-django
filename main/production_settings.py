@@ -24,6 +24,13 @@ DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    # Add other origins if needed
+]
+
 # Edit the following line and place your railway URL, and your custom URL in the array.
 CSRF_TRUSTED_ORIGINS = [
     "https://*.up.railway.app", 
