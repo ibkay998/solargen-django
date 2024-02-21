@@ -39,6 +39,8 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 @swagger_auto_schema(method='post', request_body=InstallerSignUpSerializer)
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([])
 def installer_signup(request):
     if request.method == 'POST':
         serializer_signup = InstallerSignUpSerializer(data = request.data)
@@ -79,6 +81,8 @@ def installer_signup(request):
 
 @swagger_auto_schema(method='post', request_body=InstallerSignInSerializer)
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([])
 def installer_signin(request):
     if request.method == 'POST':
         serializer_signin = InstallerSignInSerializer(data=request.data)
@@ -189,6 +193,8 @@ USERS
 
 @swagger_auto_schema(method='post', request_body=UserProfileSignInSerializer)
 @api_view(['POST'])
+@authentication_classes([])
+@permission_classes([])
 def user_signin(request):
     if request.method == 'POST':
         serializer = UserProfileSignInSerializer(data=request.data)
