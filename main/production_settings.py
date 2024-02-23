@@ -28,6 +28,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
+    "https://pam-ai-my5u.vercel.app"
     # Add other origins if needed
 ]
 
@@ -35,7 +36,6 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://*.up.railway.app", 
     "http://*.up.railway.app", 
-    "http://localhost:3000",
     # NOTE: Place your custom url here if any
 ]
 
