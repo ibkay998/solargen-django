@@ -110,7 +110,7 @@ class InstallerSignUpSerializer(serializers.Serializer):
         first_name = data.get('first_name')
         last_name = data.get('last_name')
         other_names = data.get('other_names')
-        full_name = f"{first_name} {other_names} {last_name}"
+        full_name = f"{first_name} {other_names} {last_name}" if other_names else f"{first_name} {last_name}"
 
         try:
             latitude, longitude, address_found = get_long_lat(country, state, city, street, houseNumber)
@@ -187,6 +187,7 @@ class InstallerAddUserSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
+    other_names = serializers.CharField(required=False)
     location_houseNumber = serializers.IntegerField(required=True)
     location_street = serializers.CharField(required=True)
     location_city = serializers.CharField(required=True)
@@ -212,12 +213,12 @@ class InstallerAddUserSerializer(serializers.Serializer):
         country = data.get('location_country')
         state = data.get('location_state')
         city = data.get('location_city')
+        other_names = data.get('other_names')
         street = data.get('location_street')
         houseNumber = data.get('location_houseNumber')
         address_provided = f"{houseNumber}, {street}, {city}, {state}, {country}"
         
-        other_names = serializers.CharField(required=False)
-        full_name = f"{first_name} {other_names} {last_name}"
+        full_name = f"{first_name} {other_names} {last_name}" if other_names else f"{first_name} {last_name}"
         
 
         try:
