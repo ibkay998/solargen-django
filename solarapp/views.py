@@ -11,6 +11,7 @@ from .serializers import (
     InstallerSignUpSerializer,
     InstallerAddUserSerializer,
     ChangePasswordSerializer,
+    UserProfileWithSpecificationsSerializer
 )
 from .models import Installer, UserProfile, CustomUser
 from rest_framework import viewsets
@@ -232,6 +233,26 @@ def installer_view_profile(request):
             return Response(profile, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(
+    method="get",
+    manual_parameters=[
+        openapi.Parameter(
+            "Authorization",
+            openapi.IN_HEADER,
+            description="Description of custom header",
+            type=openapi.TYPE_STRING,
+        )
+    ],
+)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def installer_view_asset_profiles(request):
+    if request.method == "GET":
+        installer_username = request.user.username
+        installer = Installer.objects.get(username=installer_username)
+        user_profiles = UserProfile.objects.filter(installer_profile=installer)
+        serializer = UserProfileWithSpecificationsSerializer(user_profiles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 """
 USERS

@@ -4,7 +4,7 @@ from .models import Installer,UserProfile
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password,make_password
 from django.contrib.auth import get_user_model
-from .models import Installer, UserProfile, CustomUser,SolarSpecification, InverterSpecification, BatteryStorageSpecification
+from .models import Installer, UserProfile, CustomUser,SolarSpecification, InverterSpecification, BatteryStorageSpecification,EnergyConsumptionData
 from rest_framework.validators import UniqueValidator
 from rest_framework import status
 from geopy.geocoders import Nominatim
@@ -299,6 +299,37 @@ class InstallerAddUserSerializer(serializers.Serializer):
         
         
         return user_profile
+    
+
+class SolarSpecificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SolarSpecification
+        fields = '__all__'
+
+class InverterSpecificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InverterSpecification
+        fields = '__all__'
+
+class BatteryStorageSpecificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BatteryStorageSpecification
+        fields = '__all__'
+
+class EnergyConsumptionDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EnergyConsumptionData
+        fields = '__all__'
+
+class UserProfileWithSpecificationsSerializer(serializers.ModelSerializer):
+    # solar_specification = SolarSpecificationSerializer()
+    # inverter_specification = InverterSpecificationSerializer()
+    # battery_storage_specification = BatteryStorageSpecificationSerializer()
+
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+        
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)

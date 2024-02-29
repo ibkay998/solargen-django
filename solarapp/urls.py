@@ -6,6 +6,7 @@ urlpatterns = [
     path('installers/signup/', views.installer_signup, name='installer_signup'),
     path('installers/signin/', views.installer_signin, name='installer_signin'),
     path('installers/add_user/', views.add_user, name='add_user'),
+    path('installers/get_user_assets/', views.installer_view_asset_profiles, name='view_user_assets'),
     path('installers/change_password/', views.installer_change_password, name='installer_change_password'),
     path('installers/view_profile/', views.installer_view_profile, name='installer_view_profile'),
 
